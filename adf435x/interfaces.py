@@ -20,9 +20,25 @@ import logging
 import struct
 import usb.core
 
-
 logger = logging.getLogger(__name__)
 
+
+class RadSig:
+    def __init__(self, dev):
+        self.dev = dev
+    
+    def set_regs(self, regs):
+        addr = self.dev.map['BM_I2CGPIO_BASE']+4*6
+        cur = self.dev.read(addr)
+        # clear LE first
+        cur &= 0xFD
+        self.dev.write(addr, cur)
+        for reg in regs:
+            self.dev.write(self.dev.map['BM_SPIOUTMSB'], reg)
+            # raise/lower LE
+            self.dev.write(addr, cur | 0x2)
+            self.dev.write(addr, cur)
+                        
 
 class FX2:
     def __init__(self):
